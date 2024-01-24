@@ -1,0 +1,122 @@
+
+services:
+
+  searx:
+    container_name: searx
+    image: searx/searx:0.18.0-341-ae0b621e
+    hostname: searx
+    restart: always
+    networks:
+      default:
+        ipv4_address: 10.10.10.3
+    command: ${SEARX_COMMAND:-}
+    volumes:
+      - ./Searx/searx:/etc/searx:rw
+    environment:
+      - TZ=${TZ}
+      - BIND_ADDRESS=10.10.10.3:8080
+      - BASE_URL=https://${SEARX_HOSTNAME}/
+      - HTTP_PROXY=${HTTP_PROXY}
+      - HTTPS_PROXY=${HTTPS_PROXY}
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+      - DAC_OVERRIDE
+
+  rss-bridge:
+    container_name: rss-bridge
+    image: rssbridge/rss-bridge:latest
+    hostname: rss-bridge
+    restart: always
+    networks:
+      default:
+        ipv4_address: 10.10.10.7
+    volumes:
+      - ./Rss-bridge/whitelist.txt:/app/whitelist.txt
+    environment:
+      - TZ=${TZ}
+      - HTTP_PROXY=${HTTP_PROXY}
+      - HTTPS_PROXY=${HTTPS_PROXY}
+
+  db_cybeye:
+    container_name: db_cybeye
+    image: mysql:latest
+    command: mysqld --default-authentication-plugin=mysql_native_password
+    volumes:
+      - db_data:/var/lib/mysql
+      - db_log:/var/log/mysql
+    restart: always
+    networks:
+      default:
+        ipv4_address: 10.10.10.5
+    environment:
+      TZ: ${TZ}
+      MYSQL_DATABASE: 'db_cybeye'
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+
+  cybeye:
+    container_name: cybeye
+    
+    depends_on:
+      - db_cybeye
+      - searx
+      - rss-bridge
+    restart: always
+    networks:
+      default:
+        ipv4_address: 10.10.10.6
+    tty: true
+    environment:
+      TZ: ${TZ}
+      DJANGO_DEBUG: ${DJANGO_DEBUG}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      EMAIL_FROM: ${EMAIL_FROM}
+      SMTP_SERVER: ${SMTP_SERVER}
+      WATCHER_URL: ${WATCHER_URL}
+      WATCHER_LOGO: ${WATCHER_LOGO}
+      EMAIL_SUBJECT_TAG_SITE_MONITORING: ${EMAIL_SUBJECT_TAG_SITE_MONITORING}
+      EMAIL_CLASSIFICATION: ${EMAIL_CLASSIFICATION}
+      THE_HIVE_URL: ${THE_HIVE_URL}
+      THE_HIVE_VERIFY_SSL: ${THE_HIVE_VERIFY_SSL}
+      THE_HIVE_KEY: ${THE_HIVE_KEY}
+      THE_HIVE_CASE_ASSIGNEE: ${THE_HIVE_CASE_ASSIGNEE}
+      THE_HIVE_TAGS: ${THE_HIVE_TAGS}
+      MISP_URL: ${MISP_URL}
+      MISP_VERIFY_SSL: ${MISP_VERIFY_SSL}
+      MISP_KEY: ${MISP_KEY}
+      MISP_TICKETING_URL: ${MISP_TICKETING_URL}
+      MISP_TAGS: ${MISP_TAGS}
+      AUTH_LDAP_SERVER_URI: ${AUTH_LDAP_SERVER_URI}
+      AUTH_LDAP_BIND_DN: ${AUTH_LDAP_BIND_DN}
+      AUTH_LDAP_BIND_PASSWORD: ${AUTH_LDAP_BIND_PASSWORD}
+      AUTH_LDAP_BASE_DN: ${AUTH_LDAP_BASE_DN}
+      AUTH_LDAP_FILTER: ${AUTH_LDAP_FILTER}
+      AUTH_LDAP_VERIFY_SSL: ${AUTH_LDAP_VERIFY_SSL}
+      DATA_LEAK_SEARX_URL: ${SEARX_PROTOCOL}${SEARX_HOSTNAME}/
+      ALLOWED_HOST: ${ALLOWED_HOST}
+      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS}
+      HTTP_PROXY: ${HTTP_PROXY}
+      HTTPS_PROXY: ${HTTPS_PROXY}
+      CERT_STREAM_URL: ${CERT_STREAM_URL}
+      no_proxy: "10.10.10.3,10.10.10.5,10.10.10.7"
+    ports:
+      - "9002:9002"
+    command: sh -c '/tmp/wait-for-mysql.sh db_watcher 3306 ${DB_USER} ${DB_PASSWORD} db_watcher -- python manage.py runserver 0.0.0.0:9002'
+
+networks:
+  default:
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.10.10.0/24
+
+volumes:
+  db_data: {}
+  db_log: {}
