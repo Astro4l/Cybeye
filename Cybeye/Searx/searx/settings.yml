@@ -3,14 +3,6 @@ general:
     instance_name : "searx" # displayed name
     contact_url: False # mailto:contact@example.com
 
-brand:
-    git_url: https://github.com/searx/searx
-    git_branch: master
-    issue_url: https://github.com/searx/searx/issues
-    docs_url: https://searx.github.io/searx
-    public_instances: https://searx.space
-    wiki_url: https://github.com/searx/searx/wiki
-    twitter_url: https://twitter.com/Searx_engine
 
 search:
     safe_search : 0 # Filter results. 0: None, 1: Moderate, 2: Strict
@@ -22,7 +14,7 @@ search:
 server:
     port : 8888
     bind_address : "127.0.0.1" # address to listen on
-    secret_key : "d5f697fc9a0430509271f3f9b9eb93af9ffa101015b74d8b73591f6ea05d5cf2" # change this!
+    secret_key : "d5f697fc9a0430509271f3f9b9eb93af9ffa101015b74d8b73591f6ea05d5cf2"
     base_url : https://10.10.10.3:8080/ # Set custom base_url. Possible values: False or "https://your.custom.host/location/"
     image_proxy : False # Proxying image results through searx
     http_protocol_version : "1.0"  # 1.0 and 1.1 are supported
@@ -35,8 +27,8 @@ server:
         Referrer-Policy : no-referrer
 
 ui:
-    static_path : "" # Custom static path - leave it blank if you didn't change
-    templates_path : "" # Custom templates path - leave it blank if you didn't change
+    static_path : "" # Custom static path - 
+    templates_path : "" # Custom templates path - 
     default_theme : oscar # ui theme
     default_locale : "" # Default interface locale - leave blank to detect from browser information or use codes from the 'locales' config section
     theme_args :
@@ -49,22 +41,6 @@ ui:
 #     - it
 #     - science
 
-# Lock arbitrary settings on the preferences page.
-# To find the ID of the user setting you want to lock, check
-# the ID of the form on the page "preferences".
-#preferences:
-#    lock:
-#      - language
-#      - autocomplete
-#      - method
-
-# searx supports result proxification using an external service: https://github.com/asciimoo/morty
-# uncomment below section if you have running morty proxy
-# the key is base64 encoded (keep the !!binary notation)
-# Note: since commit af77ec3, morty accepts a base64 encoded key.
-#result_proxy:
-#    url : http://127.0.0.1:3000/
-#    key : !!binary "your_morty_proxy_key"
 
 outgoing: # communication with search engines
     request_timeout : 2.0 # default timeout in seconds, can be override by engine
